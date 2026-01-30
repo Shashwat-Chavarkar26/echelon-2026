@@ -1,6 +1,6 @@
 Flask
 Flask-Cors
-tensorflow
+tensorflow==2.14.1
 keras
 pandas
 numpy
@@ -8,3 +8,4 @@ datetime
 matplotlib
 matplotlib.pyplot
 yfinance
+
