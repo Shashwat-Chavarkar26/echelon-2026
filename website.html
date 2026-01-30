@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css">
+<title>silvermoonlight</title>
+
+</head>
+<body>
+
+<div class="container">
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="p1">
+    <div class="layout">
+      <div class="text">
+        <h1>silvermoonlight</h1>
+        <p>get updated on your silver stocks daily</p>
+        <button onclick="go(2)">ENTER</button>
+      </div>
+      <div class="visual">
+        <img src="silver face1.jpeg" alt="Silver Analysis">
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="p2">
+    <div class="layout">
+      <div class="text">
+        <h1>ACCESS</h1>
+        <p>choose your path</p>
+        <div class="options">
+          <button onclick="mode('login')">LOG IN</button>
+          <button onclick="mode('guest')">EXPLORE AS GUEST</button>
+          <button onclick="mode('signup')">SIGN UP</button>
+        </div>
+      </div>
+      <div class="visual">
+        <img src="silver thing1.jpeg" alt="Access Portal">
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page" id="p3">
+    <div class="layout">
+      <div class="text">
+        <h1 id="title">VERIFY</h1>
+        <p id="subtitle"></p>
+        <div class="inputs" id="fields"></div>
+        <button onclick="proceedFromVerify()">PROCEED</button>
+      </div>
+      <div class="visual">
+        <img src="silversilver.jpeg" alt="Verification">
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 4 -->
+  <div class="page" id="p4">
+    <div class="layout">
+      <div class="text">
+        <h1>OCCUPATION</h1>
+        <p>select your role</p>
+        <div class="options">
+          <button onclick="selectRole(this,'First time here')">First time here</button>
+          <button onclick="selectRole(this,'Beginner')">Beginner</button>
+          <button onclick="selectRole(this,'Advanced')">Advanced</button>
+          <button onclick="selectRole(this,'Professional')">Professional</button>
+          <button onclick="selectRole(this,'Other')">Other</button>
+        </div>
+        <button style="margin-top:20px;" onclick="go(2)">Log in to your account</button>
+      </div>
+      <div class="visual">
+        <img src="silver2.jpeg" alt="Profile">
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <div class="page" id="main">
+    <div id="navToggle" onclick="toggleNav()">
+      <div></div><div></div><div></div>
+    </div>
+    <div id="sidebar">
+      <h3 onclick="loadPriceChart('monthly')">📊 Prices</h3>
+      <h4 onclick="loadGoldComparison()">💰 Compare with Gold Rates</h4>
+      <h4 onclick="loadInflationInfo()">📈 Inflation Rates</h4>
+      <h4 onclick="loadAvailabilityInfo()">🏭 Silver Availability</h4>
+      <h4 onclick="loadRenewableInfo()">⚡ Renewable Energy Impact</h4>
+      <h4>🌍 Geopolitical</h4>
+      <div class="sub-options">
+        <span onclick="loadGeopoliticalInfo()">Global Factors</span>
+        <span onclick="loadTradeInfo()">Trade Disputes</span>
+      </div>
+      <h4 onclick="loadForecast()">🔮 AI Forecast (LSTM)</h4>
+    </div>
+    <div class="graph-section" id="contentArea">
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">Select an option from the menu</h2>
+      <div class="time-selector">
+        <button class="selected" onclick="selectTime(this,'weekly')">Weekly</button>
+        <button onclick="selectTime(this,'monthly')">Monthly</button>
+        <button onclick="selectTime(this,'quarterly')">Quarterly</button>
+        <button onclick="selectTime(this,'half-yearly')">Half Yearly</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Back / Forward buttons -->
+<div class="nav-ui">
+  <button onclick="back()">← BACK</button>
+  <button onclick="forward()">FORWARD →</button>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:5000/api';
+let selectedRole = null;
+let historyStack = [1];
+let currentIndex = 0;
+let currentPeriod = 'weekly';
+
+// --- NAVIGATION ---
+function go(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(n==='main'){
+    document.getElementById('main').classList.add('active');
+    loadPriceChart('monthly'); // Load default chart
+  } else {
+    document.getElementById('p'+n).classList.add('active');
+  }
+  historyStack = historyStack.slice(0,currentIndex+1);
+  historyStack.push(n);
+  currentIndex++;
+}
+
+function back(){
+  if(currentIndex > 0){
+    currentIndex--;
+    show(historyStack[currentIndex]);
+  }
+}
+
+function forward(){
+  if(currentIndex < historyStack.length-1){
+    currentIndex++;
+    show(historyStack[currentIndex]);
+  }
+}
+
+function show(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(n==='main'){
+    document.getElementById('main').classList.add('active');
+  } else {
+    document.getElementById('p'+n).classList.add('active');
+  }
+}
+
+// --- MODE SELECTION ---
+function mode(type){
+  const f=document.getElementById('fields');
+  const t=document.getElementById('title');
+  const s=document.getElementById('subtitle');
+  f.innerHTML='';
+
+  if(type==='login'){
+    t.innerText='LOG IN';
+    s.innerText='secure silver access';
+    f.innerHTML=`<input type="text" placeholder="Username">
+                 <input type="password" placeholder="Passcode">`;
+  }
+  if(type==='signup'){
+    t.innerText='REGISTER';
+    s.innerText='create secure vault';
+    f.innerHTML=`<input type="tel" placeholder="Mobile Number">
+                 <input type="email" placeholder="Email">
+                 <input type="password" placeholder="New Passcode">`;
+  }
+  if(type==='guest'){
+    t.innerText='GUEST';
+    s.innerText='limited exploration';
+    f.innerHTML='<p style="color:#8b1e2d;">Proceeding as guest - full features available</p>';
+  }
+  go(3);
+}
+
+function proceedFromVerify(){
+  const title = document.getElementById('title').innerText;
+  if(title==='GUEST'){
+    go(4);
+  } else {
+    go('main');
+  }
+}
+
+function selectRole(btn,role){
+  selectedRole = role;
+  document.querySelectorAll('#p4 .options button').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  setTimeout(() => go('main'), 500);
+}
+
+function toggleNav(){
+  document.getElementById('sidebar').classList.toggle('active');
+}
+
+function selectTime(btn, period){
+  currentPeriod = period;
+  document.querySelectorAll('.time-selector button').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  loadPriceChart(period);
+}
+
+// --- API CALLS ---
+function showLoading(){
+  document.getElementById('contentArea').innerHTML = '<p class="loading">Loading data...</p>';
+}
+
+
+async function loadPriceChart(period){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/chart/${period}`);
+    const data = await response.json();
+    
+    // Format the price with commas
+    const formattedPrice = typeof data.current_price === 'number' 
+      ? data.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : data.current_price;
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">${period.toUpperCase()} SILVER PRICE</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Current Price</h4>
+          <p>₹${formattedPrice}</p>
+        </div>
+        <div class="stat-card">
+          <h4>24h Change</h4>
+          <p style="color:${data.price_change >= 0 ? '#4CAF50' : '#f44336'}">${data.price_change >= 0 ? '+' : ''}${data.price_change}%</p>
+        </div>
+        <div class="stat-card">
+          <h4>Sentiment</h4>
+          <p>${data.sentiment}</p>
+        </div>
+      </div>
+      <div class="chart-container">
+        <img src="${data.image}" alt="Silver Price Chart">
+      </div>
+      <div class="time-selector">
+        <button ${period==='weekly'?'class="selected"':''} onclick="selectTime(this,'weekly')">Weekly</button>
+        <button ${period==='monthly'?'class="selected"':''} onclick="selectTime(this,'monthly')">Monthly</button>
+        <button ${period==='quarterly'?'class="selected"':''} onclick="selectTime(this,'quarterly')">Quarterly</button>
+        <button ${period==='half-yearly'?'class="selected"':''} onclick="selectTime(this,'half-yearly')">Half Yearly</button>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading data. Make sure Flask server is running on port 5000.</p>';
+    console.error('Error:', error);
+  }
+}
+async function loadGoldComparison(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/compare-gold`);
+    const data = await response.json();
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">SILVER VS GOLD COMPARISON</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Silver Return</h4>
+          <p style="color:${data.silver_return >= 0 ? '#4CAF50' : '#f44336'}">${data.silver_return >= 0 ? '+' : ''}${data.silver_return}%</p>
+        </div>
+        <div class="stat-card">
+          <h4>Gold Return</h4>
+          <p style="color:${data.gold_return >= 0 ? '#4CAF50' : '#f44336'}">${data.gold_return >= 0 ? '+' : ''}${data.gold_return}%</p>
+        </div>
+        <div class="stat-card">
+          <h4>Better Performer</h4>
+          <p>${data.better_performer}</p>
+        </div>
+      </div>
+      <div class="chart-container">
+        <img src="${data.image}" alt="Comparison Chart">
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading comparison data.</p>';
+  }
+}
+
+async function loadInflationInfo(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/inflation`);
+    const data = await response.json();
+    
+    let factorsHTML = data.factors.map(f => `
+      <div class="stat-card">
+        <h4>${f.name} (${f.impact} Impact)</h4>
+        <p style="font-size:1rem;">${f.description}</p>
+      </div>
+    `).join('');
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">${data.title.toUpperCase()}</h2>
+      <div class="info-section">
+        <p>${data.summary}</p>
+      </div>
+      <div class="stats-grid">
+        ${factorsHTML}
+      </div>
+      <div class="info-section">
+        <h3>Current Trend</h3>
+        <p>${data.current_trend}</p>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading inflation data.</p>';
+  }
+}
+
+async function loadAvailabilityInfo(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/availability`);
+    const data = await response.json();
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">${data.title.toUpperCase()}</h2>
+      <div class="info-section">
+        <h3>Key Points</h3>
+        <ul>
+          ${data.key_points.map(p => `<li>${p}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Import Dependency</h4>
+          <p>${data.indian_market.import_dependency}</p>
+        </div>
+        <div class="stat-card">
+          <h4>Major Sources</h4>
+          <p style="font-size:1rem;">${data.indian_market.major_sources.join(', ')}</p>
+        </div>
+      </div>
+      <div class="info-section">
+        <h3>Demand Drivers</h3>
+        <p>${data.indian_market.demand_drivers.join(' • ')}</p>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading availability data.</p>';
+  }
+}
+
+async function loadRenewableInfo(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/renewable-energy`);
+    const data = await response.json();
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">${data.title.toUpperCase()}</h2>
+      <div class="info-section">
+        <h3>Solar Panel Impact</h3>
+        <p>${data.solar_impact.description}</p>
+        <p><strong>Demand Share:</strong> ${data.solar_impact.demand_share}</p>
+        <p><strong>Trend:</strong> ${data.solar_impact.growth_trend}</p>
+      </div>
+      <div class="info-section">
+        <h3>India-Specific Data</h3>
+        <p><strong>Solar Target:</strong> ${data.india_specific.solar_target}</p>
+        <p><strong>Silver Requirement:</strong> ${data.india_specific.silver_requirement}</p>
+        <p><strong>Impact:</strong> ${data.india_specific.impact}</p>
+      </div>
+      <div class="info-section">
+        <h3>Future Outlook</h3>
+        <p>${data.future_outlook}</p>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading renewable energy data.</p>';
+  }
+}
+
+async function loadGeopoliticalInfo(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/geopolitical`);
+    const data = await response.json();
+    
+    let factorsHTML = data.major_factors.map(f => `
+      <div class="stat-card">
+        <h4>${f.factor}</h4>
+        <p style="font-size:0.9rem;color:#8b1e2d;">Impact: ${f.impact}</p>
+        <p style="font-size:0.9rem;">${f.details}</p>
+      </div>
+    `).join('');
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">${data.title.toUpperCase()}</h2>
+      <div class="stats-grid">
+        ${factorsHTML}
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading geopolitical data.</p>';
+  }
+}
+
+async function loadTradeInfo(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/geopolitical`);
+    const data = await response.json();
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">TRADE DISPUTES & IMPACTS</h2>
+      <div class="info-section">
+        <h3>Current Issues</h3>
+        <ul>
+          ${data.trade_disputes.current_issues.map(i => `<li>${i}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="info-section">
+        <h3>India-Specific Impact</h3>
+        <p>${data.trade_disputes.india_specific}</p>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Error loading trade data.</p>';
+  }
+}
+
+async function loadForecast(){
+  showLoading();
+  try {
+    const response = await fetch(`${API_BASE}/forecast`);
+    const data = await response.json();
+    
+    const formattedForecast = typeof data.average_forecast === 'number'
+      ? data.average_forecast.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : data.average_forecast;
+    
+    const formattedMin = data.forecast_range?.min.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    const formattedMax = data.forecast_range?.max.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    
+    document.getElementById('contentArea').innerHTML = `
+      <h2 style="color:#8b1e2d;margin-bottom:20px;">AI-POWERED 30-DAY FORECAST (LSTM)</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Average Forecast</h4>
+          <p>₹${formattedForecast}</p>
+        </div>
+        <div class="stat-card">
+          <h4>Trend</h4>
+          <p>${data.trend}</p>
+        </div>
+        <div class="stat-card">
+          <h4>30-Day Change</h4>
+          <p style="color:${data.price_change_30d >= 0 ? '#4CAF50' : '#f44336'}">${data.price_change_30d >= 0 ? '+' : ''}${data.price_change_30d.toFixed(2)}%</p>
+        </div>
+        <div class="stat-card">
+          <h4>Forecast Range</h4>
+          <p style="font-size:0.9rem;">₹${formattedMin} - ₹${formattedMax}</p>
+        </div>
+      </div>
+      <div class="chart-container">
+        <img src="${data.image}" alt="Forecast Chart">
+      </div>
+      <div class="info-section">
+        <h3>Model Information</h3>
+        <p><strong>Confidence:</strong> ${data.confidence}</p>
+        <p style="color:#f57f17;margin-top:10px;"><strong>Note:</strong> This forecast uses a deep LSTM neural network trained on 1 year of historical data. The shaded area represents the 95% confidence interval. Actual prices may vary due to unforeseen market events.</p>
+      </div>
+    `;
+  } catch(error) {
+    document.getElementById('contentArea').innerHTML = '<p style="color:#f44336;">Training LSTM model... This may take 30-60 seconds on first request. Please wait...</p>';
+    console.error('Error:', error);
+  }
+}
+</script>
+
+</body>
+</html>

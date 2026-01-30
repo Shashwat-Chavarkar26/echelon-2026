@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+tensorflow
+keras
+pandas
+numpy
+datetime
+matplotlib
+matplotlib.pyplot
+yfinance
