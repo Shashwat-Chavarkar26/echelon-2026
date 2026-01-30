@@ -1,5 +1,6 @@
 Flask
 Flask-Cors
+gunicorn
 tensorflow==2.14.1
 keras
 pandas
@@ -7,7 +8,7 @@ numpy
 datetime
 matplotlib
 yfinance
-gunicorn
+
 
 
 
