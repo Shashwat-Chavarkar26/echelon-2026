@@ -7,5 +7,7 @@ numpy
 datetime
 matplotlib
 yfinance
+gunicorn
+
 
 
