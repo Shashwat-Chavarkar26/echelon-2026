@@ -35,7 +35,7 @@ except ImportError:
         print("Install with: pip install tensorflow")
         Sequential = None
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', template_folder='.')
 CORS(app)
 
 # Global cache for LSTM model
@@ -170,6 +170,19 @@ def forecast_lstm(model, scaler, last_sequence, days=30):
     except Exception as e:
         print(f"Error forecasting: {e}")
         return None
+
+@app.route('/')
+def index():
+    # This will now look for index.html in your main folder
+    return send_from_directory(os.getcwd(), 'website.html')
+
+# Add this to ensure your CSS and JS files load correctly
+from flask import send_from_directory
+import os
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.getcwd(), path)
 
 # API ENDPOINTS
 @app.route('/')
