@@ -34,10 +34,9 @@ except ImportError:
         print("❌ ERROR: Neither TensorFlow nor Keras found!")
         print("Install with: pip install tensorflow")
         Sequential = None
-
-app = Flask(__name__, static_folder='.', template_folder='.')
+        
+app = Flask(__name__, static_url_path='', static_folder='.')
 CORS(app)
-
 # Global cache for LSTM model
 lstm_model_cache = {
     'model': None,
@@ -185,9 +184,7 @@ def serve_static(path):
     return send_from_directory(os.getcwd(), path)
 
 # API ENDPOINTS
-@app.route('/')
-def home():
-    return "✅ Silver API is Running! Try /api/chart/weekly"
+
 
 @app.route('/api/chart/<period>')
 def get_chart(period):
