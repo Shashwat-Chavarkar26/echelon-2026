@@ -6,6 +6,6 @@ pandas
 numpy
 datetime
 matplotlib
-matplotlib.pyplot
 yfinance
+
 
