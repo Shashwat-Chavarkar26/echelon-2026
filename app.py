@@ -1,4 +1,3 @@
-from waitress import serve
 from flask import Flask, jsonify
 from flask_cors import CORS
 import yfinance as yf
