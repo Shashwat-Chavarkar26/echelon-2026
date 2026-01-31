@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
