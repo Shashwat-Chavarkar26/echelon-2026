@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 import yfinance as yf
 import pandas as pd
@@ -172,7 +172,15 @@ def forecast_lstm(model, scaler, last_sequence, days=30):
         return None
 
 # API ENDPOINTS
+@app.route('/')
+def index():
+    # If your file is named 'index.html', change 'website.html' to 'index.html' below
+    return send_from_directory(os.getcwd(), 'website.html')
 
+@app.route('/<path:path>')
+def serve_static(path):
+    # This is the "magic" that makes silver face1.jpeg visible
+    return send_from_directory(os.getcwd(), path)
 
 @app.route('/api/chart/<period>')
 def get_chart(period):
