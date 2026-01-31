@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
-<title>silvermoonlight</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <title>silvermoonlight</title>
 </head>
 <body>
 
@@ -78,24 +78,22 @@
     </div>
     <div id="sidebar">
       <h3 onclick="loadPriceChart('monthly')">📊 Prices</h3>
-      <h4 onclick="loadGoldComparison()">💰 Compare with Gold Rates</h4>
-      <h4 onclick="loadInflationInfo()">📈 Inflation Rates</h4>
-      <h4 onclick="loadAvailabilityInfo()">🏭 Silver Availability</h4>
-      <h4 onclick="loadRenewableInfo()">⚡ Renewable Energy Impact</h4>
-      <h4 onclick="loadGeopoliticalInfo()">🌍 Geopolitical</h4>
-      <div class="sub-options">
-        <span onclick="loadGeopoliticalInfo()">Global Factors</span>
-        <span onclick="loadTradeInfo()">Trade Disputes</span>
-      </div>
+      <h4 onclick="loadGoldComparison()">💰 Gold vs Silver</h4>
+      <h4 onclick="loadInfo('/api/inflation')">📈 Inflation Rates</h4>
+      <h4 onclick="loadInfo('/api/availability')">🏭 Availability</h4>
+      <h4 onclick="loadInfo('/api/renewable-energy')">⚡ Renewable Impact</h4>
+      <h4 onclick="loadInfo('/api/geopolitical')">🌍 Geopolitical</h4>
       <h4 onclick="loadForecast()">🔮 AI Forecast (LSTM)</h4>
     </div>
     <div class="graph-section" id="contentArea">
-      <h2 style="color:#8b1e2d;margin-bottom:20px;">Select an option from the menu</h2>
-      <div class="time-selector">
-        <button class="selected" onclick="selectTime(this,'weekly')">Weekly</button>
-        <button onclick="selectTime(this,'monthly')">Monthly</button>
-        <button onclick="selectTime(this,'quarterly')">Quarterly</button>
-        <button onclick="selectTime(this,'half-yearly')">Half Yearly</button>
+      <div id="displayOutput">
+        <h2 style="color:#8b1e2d;margin-bottom:20px;">Select an option from the menu</h2>
+      </div>
+      <div class="time-selector" id="timeSelector" style="display:none;">
+        <button onclick="loadPriceChart('weekly')">Weekly</button>
+        <button onclick="loadPriceChart('monthly')">Monthly</button>
+        <button onclick="loadPriceChart('quarterly')">Quarterly</button>
+        <button onclick="loadPriceChart('half-yearly')">Half Yearly</button>
       </div>
     </div>
   </div>
@@ -107,17 +105,16 @@
 </div>
 
 <script>
-const API_BASE = '/api'; // FIXED: Removed localhost
-let selectedRole = null;
+const API_BASE = '/api';
 let historyStack = [1];
 let currentIndex = 0;
-let currentPeriod = 'weekly';
 
+// Navigation Logic
 function go(n){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   if(n==='main'){
     document.getElementById('main').classList.add('active');
-    loadPriceChart('monthly'); 
+    loadPriceChart('monthly');
   } else {
     document.getElementById('p'+n).classList.add('active');
   }
@@ -142,13 +139,11 @@ function forward(){
 
 function show(n){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  if(n==='main'){
-    document.getElementById('main').classList.add('active');
-  } else {
-    document.getElementById('p'+n).classList.add('active');
-  }
+  if(n==='main'){ document.getElementById('main').classList.add('active'); }
+  else { document.getElementById('p'+n).classList.add('active'); }
 }
 
+// Access Modes
 function mode(type){
   const f=document.getElementById('fields');
   const t=document.getElementById('title');
@@ -158,13 +153,11 @@ function mode(type){
     t.innerText='LOG IN';
     s.innerText='secure silver access';
     f.innerHTML=`<input type="text" placeholder="Username"><input type="password" placeholder="Passcode">`;
-  }
-  if(type==='signup'){
+  } else if(type==='signup'){
     t.innerText='REGISTER';
     s.innerText='create secure vault';
     f.innerHTML=`<input type="tel" placeholder="Mobile Number"><input type="email" placeholder="Email"><input type="password" placeholder="New Passcode">`;
-  }
-  if(type==='guest'){
+  } else {
     t.innerText='GUEST';
     s.innerText='limited exploration';
     f.innerHTML='<p style="color:#8b1e2d;">Proceeding as guest - full features available</p>';
@@ -178,7 +171,6 @@ function proceedFromVerify(){
 }
 
 function selectRole(btn,role){
-  selectedRole = role;
   document.querySelectorAll('#p4 .options button').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   setTimeout(() => go('main'), 500);
@@ -188,5 +180,66 @@ function toggleNav(){
   document.getElementById('sidebar').classList.toggle('active');
 }
 
-function selectTime(btn, period){
-  currentPeriod = period;
+// --- DATA FETCHING FUNCTIONS ---
+
+async function loadPriceChart(period) {
+  const content = document.getElementById('displayOutput');
+  document.getElementById('timeSelector').style.display = 'flex';
+  content.innerHTML = '<p>Loading Price Data...</p>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/chart/${period}`);
+    const data = await res.json();
+    content.innerHTML = `
+      <h3>Current Price: ₹${data.current_price} (${data.price_change}%)</h3>
+      <p>Market Sentiment: <strong>${data.sentiment}</strong></p>
+      <img src="${data.image}" style="width:100%; border-radius:10px; margin-top:10px;">
+    `;
+  } catch (e) { content.innerHTML = '<p>Error loading chart.</p>'; }
+}
+
+async function loadGoldComparison() {
+  const content = document.getElementById('displayOutput');
+  document.getElementById('timeSelector').style.display = 'none';
+  content.innerHTML = '<p>Comparing Assets...</p>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/compare-gold`);
+    const data = await res.json();
+    content.innerHTML = `
+      <h3>Better Performer: ${data.better_performer}</h3>
+      <img src="${data.image}" style="width:100%; border-radius:10px;">
+    `;
+  } catch (e) { content.innerHTML = '<p>Error loading comparison.</p>'; }
+}
+
+async function loadForecast() {
+  const content = document.getElementById('displayOutput');
+  document.getElementById('timeSelector').style.display = 'none';
+  content.innerHTML = '<p>Running LSTM Model (may take 30s)...</p>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/forecast`);
+    const data = await res.json();
+    content.innerHTML = `
+      <h3>30-Day Forecast Trend: ${data.trend}</h3>
+      <p>Confidence: ${data.confidence}</p>
+      <img src="${data.image}" style="width:100%; border-radius:10px;">
+    `;
+  } catch (e) { content.innerHTML = '<p>Error loading forecast.</p>'; }
+}
+
+async function loadInfo(endpoint) {
+  const content = document.getElementById('displayOutput');
+  document.getElementById('timeSelector').style.display = 'none';
+  
+  try {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    content.innerHTML = `<h3>${data.title}</h3><p>${data.summary || data.key_points.join('<br>')}</p>`;
+  } catch (e) { content.innerHTML = '<p>Error loading info.</p>'; }
+}
+</script>
+
+</body>
+</html>
